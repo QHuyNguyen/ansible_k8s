@@ -1,0 +1,46 @@
+#- name: Download the public signing key for the Kubernetes package repositories
+#  shell: |
+#    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+- name: Download the public signing key for the Kubernetes package repositories
+  apt_key:
+    url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
+    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+#- name: Add the appropriate Kubernetes apt repository
+#  file:
+#    state: "{{ item.state }}"
+#    path: "{{ item.path }}"
+#  loop:
+#    - { state: directory, path: /etc/containerd }
+#    - { state: touch, path: /etc/containerd/kubernetes.list }
+- name: Add kubernetes.list file in apt repository
+  file:
+    path: /etc/apt/sources.list.d/kubernetes.list
+    state: touch
+
+- name: Add content to kubernetes.list file
+  shell: | 
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' > /etc/apt/sources.list.d/kubernetes.list
+
+- name: Update the apt package index
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Install kubelet, kubeadm and kubectl
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: latest
+
+- name: Hold kubelet, kubeadm and kubectl
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop: 
+    - kubelet
+    - kubeadm
+    - kubectl

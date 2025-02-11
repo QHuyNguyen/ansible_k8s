@@ -1,0 +1,15 @@
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: 'yes'
+    update_cache: yes
+
+- name: Install container runtime (Ubuntu)
+  tags: ubuntu,containerd
+  apt:
+    name: containerd
+    state: latest
+
+- name: Create directory for containerd
+  file:
+    state: directory
+    path: /etc/containerd

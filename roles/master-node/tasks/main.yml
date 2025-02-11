@@ -1,0 +1,9 @@
+---
+- name: Install kubeadm, kubelet, kubectl
+  include_tasks: install_kubeadm_kubelet_kubectl.yml
+
+- name: Install containerd runtime
+  include_tasks: install_container_runtime.yml
+
+- name: Configure Cgroup driver
+  include_tasks: configure_cgroup_driver.yml
