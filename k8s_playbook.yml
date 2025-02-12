@@ -5,4 +5,4 @@
   hosts: all
   become: true
   roles:
-    - common
+    - master_node
