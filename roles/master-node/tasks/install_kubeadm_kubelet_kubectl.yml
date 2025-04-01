@@ -24,9 +24,8 @@
 
 - name: Update the apt package index
   apt:
-    upgrade: yes
+    upgrade: 'yes'
     update_cache: yes
-    cache_valid_time: 86400
 
 - name: Install kubelet, kubeadm and kubectl
   apt:
