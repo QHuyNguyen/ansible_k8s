@@ -1,8 +1,8 @@
 ---
 
-- name: Master Node Playbook
+- name: Worker Node Playbook
   gather_facts: true
   hosts: all
   become: true
   roles:
-    - master-node
+    - worker-node
