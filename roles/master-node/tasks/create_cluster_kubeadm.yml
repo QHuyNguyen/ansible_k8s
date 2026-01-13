@@ -1,0 +1,27 @@
+- name: Initialize Kubernetes control plane
+  shell: | 
+    kubeadm init \
+    --pod-network-cidr={{ pod_network_cidr }} \
+    --apiserver-advertise-address={{ apiserver_advertise_address }} \
+    --upload-certs
+  args:
+    creates: /etc/kubernetes/admin.conf
+  when: inventory_hostname in groups['control_plane']
+
+- name: Create .kube directory
+  file:
+    path: /home/{{ kube_user }}/.kube
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_user }}"
+    mode: "0755"
+
+- name: Copy admin kubeconfig
+  become: true
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ kube_user }}/.kube/config
+    remote_src: true
+    owner: "{{ kube_user }}"
+    group: "{{ kube_user }}"
+    mode: "0644"
