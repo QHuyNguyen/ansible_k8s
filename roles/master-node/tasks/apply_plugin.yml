@@ -1,0 +1,11 @@
+- name: Install Weave CNI
+  become_user: "{{ kube_user }}"
+  environment:
+    KUBECONFIG: /home/{{ kube_user }}/.kube/config
+  command: >
+    kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.29/net.yaml
+  args:
+    creates: /etc/cni/net.d/10-weave.conflist
+  #If weave (/etc/cni/net.d) exists, do not run this command
+  when: inventory_hostname in groups['control_plane']
+

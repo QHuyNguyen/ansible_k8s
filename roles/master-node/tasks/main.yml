@@ -7,3 +7,9 @@
 
 - name: Configure Cgroup driver
   include_tasks: configure_cgroup_driver.yml
+
+- name: Create cluster with Kubeadm
+  include_tasks: create_cluster_kubeadm.yml
+
+- name: Apply network plugin
+  include_tasks: apply_plugin.yml
