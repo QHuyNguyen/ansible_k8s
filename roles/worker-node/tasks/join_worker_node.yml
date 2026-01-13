@@ -1,0 +1,26 @@
+- name: Retrieve kubeadm join command
+  shell: |
+    kubeadm token create --print-join-command
+  register: join_cmd
+  when: inventory_hostname in groups['control_plane']
+
+- name: Confirm join_cmd variable output
+  debug:
+    var: join_cmd.stdout
+  when: inventory_hostname in groups['control_plane']
+
+- name: Set fact to join command
+  set_fact:
+    kubeadm_join_cmd: "{{ join_cmd.stdout }}"
+  when: inventory_hostname in groups['control_plane']
+  delegate_facts: true
+  delegate_to: localhost
+
+- name: Confirm set_fact output
+  debug:
+    msg: "{{ hostvars['localhost'].kubeadm_join_cmd }}"
+  when: inventory_hostname in groups['workers']
+
+- name: Join worker nodes to cluster
+  command: "{{ hostvars['localhost'].kubeadm_join_cmd }}"
+  when: inventory_hostname in groups['workers']
