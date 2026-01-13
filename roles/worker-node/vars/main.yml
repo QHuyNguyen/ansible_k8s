@@ -1,4 +1,0 @@
-pod_network_cidr: "10.244.0.0/16"
-apiserver_advertise_address: "10.0.0.11"
-kube_user: "ubuntu"
-weave_manifest_url: "https://reweave.azurewebsites.net/k8s/v1.29/net.yaml"
