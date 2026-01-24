@@ -9,3 +9,21 @@
   #If weave (/etc/cni/net.d) exists, do not run this command
   when: inventory_hostname in groups['control_plane']
 
+- name: Install AWS EBS CSI Driver using helm
+  become_user: "{{ kube_user }}"
+  command: >
+    snap install helm --classic
+  when: inventory_hostname in groups['control_plane']
+
+- name: Add the EBS CSI Driver Helm repository
+  become_user: "{{ kube_user }}"
+  command: >
+    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+  when: inventory_hostname in groups['control_plane']
+
+- name: Deploy the driver
+  become_user: "{{ kube_user }}"
+  command: >
+   helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver
+  when: inventory_hostname in groups['control_plane']
+
