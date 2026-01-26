@@ -9,7 +9,7 @@
   #If weave (/etc/cni/net.d) exists, do not run this command
   when: inventory_hostname in groups['control_plane']
 
-- name: Install AWS EBS CSI Driver using helm
+- name: Install Helm
   become_user: "{{ kube_user }}"
   command: >
     snap install helm --classic
@@ -21,9 +21,28 @@
     helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
   when: inventory_hostname in groups['control_plane']
 
-- name: Deploy the driver
+- name: Deploy EBS CSI driver
   become_user: "{{ kube_user }}"
   command: >
-   helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver
+    helm upgrade --install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver  \
+    --namespace kube-system \
+    --create-namespace \
+    --set controller.serviceAccount.create=true \
+    --set node.serviceAccount.create=true
+  when: inventory_hostname in groups['control_plane']
+
+- name: Install VolumeSnapshot CRD
+  become_user: "{{ kube_user }}"
+  command: kubectl apply -f {{ item }}
+  loop:
+    - https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.3/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+    - https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.3/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+    - https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.3/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+  when: inventory_hostname in groups['control_plane']
+
+- name: Install Snapshot Controller
+  become_user: "{{ kube_user }}"
+  command: >
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.3/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml
   when: inventory_hostname in groups['control_plane']
 
