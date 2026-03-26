@@ -1,0 +1,46 @@
+#Download prometheus binary tar file
+- name: Download prometheus binary tar file
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/{{ prometheus_dir }}.tar.gz"
+    dest: /home/ubuntu
+
+- name: Extract the file
+  ansible.builtin.unarchive:
+    src: /home/ubuntu/{{ prometheus_dir }}.tar.gz"
+    dest: /home/ubuntu
+
+- name: Move prometheus binary file and CLI to /usr/local/bin/
+  command: >
+    mv /home/ubuntu/{{ prometheus_dir }}/prometheus /usr/local/bin
+    mv /home/ubuntu/{{ prometheus_dir }}/promtool /usr/local/bin
+
+- name: Create directory for prometheus
+  ansible.builtin.file:
+    state: directory
+    path: /etc/prometheus
+  
+- name: Move prometheus config file to /etc/prometheus
+  command: >
+    mv /home/ubuntu/{{ prometheus_dir }}/prometheus.yml /etc/prometheus
+
+- name: Create data directory for prometheus
+  ansible.builtin.file:
+    state: directory
+    path: /var/lib/prometheus
+    owner: ubuntu
+    group: ubuntu
+    recursive: true
+
+- name: Create prometheus.service in systemd
+  ansible.builtin.template:
+    src: ../files/prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+    owner: root
+    group: root
+
+- name: Start and enable prometheus service
+  ansible.builtin.systemd_service:
+    name: prometheus
+    state: started
+    enabled: true
+    daemon_reload: true
