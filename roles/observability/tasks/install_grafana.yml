@@ -1,0 +1,20 @@
+- name: Download the public signing key for the Grafana package repositories
+  ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg-full.key
+    dest: /etc/apt/keyrings/grafana.asc
+    mode: '0644'
+
+- name: add a repository for grafana
+  shell: | 
+    echo "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
+
+- name: Update the apt package index
+  apt:
+    upgrade: 'yes'
+    update_cache: yes
+
+- name: Install kubelet, kubeadm and kubectl
+  apt:
+    name:
+      - grafana
+    state: latest
