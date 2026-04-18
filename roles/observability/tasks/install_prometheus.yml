@@ -3,25 +3,49 @@
   ansible.builtin.get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/{{ prometheus_dir }}.tar.gz"
     dest: /home/ubuntu
+  when: inventory_hostname in groups['control_plane']
 
 - name: Extract the file
   ansible.builtin.unarchive:
-    src: /home/ubuntu/{{ prometheus_dir }}.tar.gz"
+    src: /home/ubuntu/{{ prometheus_dir }}.tar.gz
     dest: /home/ubuntu
+    remote_src: yes
+  when: inventory_hostname in groups['control_plane']
 
-- name: Move prometheus binary file and CLI to /usr/local/bin/
-  command: >
-    mv /home/ubuntu/{{ prometheus_dir }}/prometheus /usr/local/bin
-    mv /home/ubuntu/{{ prometheus_dir }}/promtool /usr/local/bin
+#- name: Copy prometheus binary file and CLI to /usr/local/bin/
+#  command: >
+#    mv /home/ubuntu/{{ prometheus_dir }}/prometheus /usr/local/bin
+#    mv /home/ubuntu/{{ prometheus_dir }}/promtool /usr/local/bin
+#  when: inventory_hostname in groups['control_plane']
+
+- name: Move prometheus binaries
+  ansible.builtin.copy:
+    src: /home/ubuntu/{{ prometheus_dir }}/prometheus
+    dest: /usr/local/bin/prometheus
+    remote_src: yes
+    mode: '0755'
+  when:
+    - inventory_hostname in groups['control_plane']
+
+- name: Move promtool binary
+  ansible.builtin.copy:
+    src: /home/ubuntu/{{ prometheus_dir }}/promtool
+    dest: /usr/local/bin/promtool
+    remote_src: yes
+    mode: '0755'
+  when:
+    - inventory_hostname in groups['control_plane']
 
 - name: Create directory for prometheus
   ansible.builtin.file:
     state: directory
     path: /etc/prometheus
+  when: inventory_hostname in groups['control_plane']
   
 - name: Move prometheus config file to /etc/prometheus
   command: >
     mv /home/ubuntu/{{ prometheus_dir }}/prometheus.yml /etc/prometheus
+  when: inventory_hostname in groups['control_plane']
 
 - name: Create data directory for prometheus
   ansible.builtin.file:
@@ -29,7 +53,7 @@
     path: /var/lib/prometheus
     owner: ubuntu
     group: ubuntu
-    recursive: true
+  when: inventory_hostname in groups['control_plane']
 
 - name: Create prometheus.service in systemd
   ansible.builtin.template:
@@ -37,6 +61,7 @@
     dest: /etc/systemd/system/prometheus.service
     owner: root
     group: root
+  when: inventory_hostname in groups['control_plane']
 
 - name: Start and enable prometheus service
   ansible.builtin.systemd_service:
@@ -44,3 +69,4 @@
     state: started
     enabled: true
     daemon_reload: true
+  when: inventory_hostname in groups['control_plane']

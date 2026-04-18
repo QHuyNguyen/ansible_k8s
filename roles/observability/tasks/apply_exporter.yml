@@ -1,0 +1,53 @@
+- name: Download node_exporter tarball
+  ansible.builtin.get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v1.10.2/node_exporter-1.10.2.linux-amd64.tar.gz
+    dest: /home/ubuntu
+    mode: '0644'
+  when: inventory_hostname in groups['control_plane']
+
+- name: Extract node_exporter
+  ansible.builtin.unarchive:
+    src: /home/ubuntu/node_exporter-1.10.2.linux-amd64.tar.gz
+    dest: /home/ubuntu
+    remote_src: yes
+  when: inventory_hostname in groups['control_plane']
+
+- name: Move node_exporter binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: /home/ubuntu/node_exporter-1.10.2.linux-amd64/node_exporter
+    dest: /usr/local/bin/node_exporter
+    mode: '0755'
+    remote_src: yes
+  when: inventory_hostname in groups['control_plane']
+
+- name: Create systemd service for node_exporter
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/node_exporter.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=ubuntu
+      Group=ubuntu
+      Type=simple
+      ExecStart=/usr/local/bin/node_exporter
+
+      [Install]
+      WantedBy=multi-user.target
+  when: inventory_hostname in groups['control_plane']
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  when: inventory_hostname in groups['control_plane']
+
+- name: Enable and start node_exporter
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: yes
+  when: inventory_hostname in groups['control_plane']

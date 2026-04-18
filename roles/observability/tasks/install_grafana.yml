@@ -3,18 +3,28 @@
     url: https://apt.grafana.com/gpg-full.key
     dest: /etc/apt/keyrings/grafana.asc
     mode: '0644'
+  when: inventory_hostname in groups['control_plane']
 
 - name: add a repository for grafana
   shell: | 
     echo "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
+  when: inventory_hostname in groups['control_plane']
 
 - name: Update the apt package index
   apt:
     upgrade: 'yes'
     update_cache: yes
+  when: inventory_hostname in groups['control_plane']
 
-- name: Install kubelet, kubeadm and kubectl
+- name: Install grafana
   apt:
     name:
       - grafana
     state: latest
+  when: inventory_hostname in groups['control_plane']
+
+- name: Start and enable Grafana
+  ansible.builtin.systemd:
+    name: grafana-server
+    state: started
+    enabled: true

@@ -1,0 +1,34 @@
+- name: Ensure argocd namespace exists
+  become_user: "{{ kube_user }}"
+  command: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+  when: inventory_hostname in groups['control_plane']
+
+- name: Install Argo CD manifests
+  become_user: "{{ kube_user }}"
+  command: >
+    kubectl apply -n argocd
+    --server-side
+    --force-conflicts
+    -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  when: inventory_hostname in groups['control_plane']
+
+- name: Patch argocd-server service to NodePort
+  become_user: "{{ kube_user }}"
+  command: >
+    kubectl patch svc argocd-server
+    -n argocd
+    -p '{"spec": {"type": "NodePort"}}'
+  when: inventory_hostname in groups['control_plane']
+
+- name: Get Argo CD NodePort
+  become_user: "{{ kube_user }}"
+  command: >
+    kubectl get svc argocd-server -n argocd
+    -o jsonpath='{.spec.ports[0].nodePort}'
+  register: argocd_nodeport
+  when: inventory_hostname in groups['control_plane']
+
+- name: Show Argo CD URL
+  debug:
+    msg: "Argo CD available at http://{{ inventory_hostname }}:{{ argocd_nodeport.stdout }}"
+  when: inventory_hostname in groups['control_plane']
