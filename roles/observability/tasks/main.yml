@@ -3,3 +3,5 @@
   include_tasks: install_prometheus.yml
 - name: Install Grafana
   include_tasks: install_grafana.yml
+- name: Install Exporter
+  include_tasks: apply_exporter.yml
