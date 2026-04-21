@@ -12,7 +12,7 @@
 - name: Install Helm
   become_user: "{{ kube_user }}"
   command: >
-    snap install helm --classic
+    sudo snap install helm --classic
   when: inventory_hostname in groups['control_plane']
 
 - name: Add the EBS CSI Driver Helm repository
