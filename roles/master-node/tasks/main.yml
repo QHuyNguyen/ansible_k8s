@@ -11,8 +11,8 @@
 - name: Create cluster with Kubeadm
   include_tasks: create_cluster_kubeadm.yml
 
-- name: Apply network plugin
-  include_tasks: apply_plugin.yml
+#- name: Apply network plugin
+#  include_tasks: apply_plugin.yml
 
-- name: Install ArgoCD
-  include_tasks: install_argocd.yml
+#- name: Install ArgoCD
+#  include_tasks: install_argocd.yml
