@@ -1,6 +1,6 @@
 - name: Ensure argocd namespace exists
   become_user: "{{ kube_user }}"
-  command: kubectl create namespace {{ argocd }} --dry-run=client -o yaml | kubectl apply -f -
+  command: kubectl create namespace {{ argocd_namespace }} --dry-run=client -o yaml | kubectl apply -f -
   when: inventory_hostname in groups['control_plane']
 
 - name: Install Argo CD manifests
