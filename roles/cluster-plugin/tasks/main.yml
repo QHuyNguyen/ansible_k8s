@@ -1,0 +1,6 @@
+---
+- name: Apply network plugin
+  include_tasks: apply_plugin.yml
+
+- name: Install ArgoCD
+  include_tasks: install_argocd.yml
