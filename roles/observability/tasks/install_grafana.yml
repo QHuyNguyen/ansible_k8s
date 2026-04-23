@@ -28,3 +28,4 @@
     name: grafana-server
     state: started
     enabled: true
+  when: inventory_hostname in groups['control_plane']
